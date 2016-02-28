@@ -39,11 +39,13 @@ def proxy_resource(context, data_dict):
         # first we try a HEAD request which may not be supported
         did_get = False
         r = requests.head(url)
+        s = requests.Session()
+        s.headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36'
         # Servers can refuse HEAD requests. 405 is the appropriate response,
         # but 400 with the invalid method mentioned in the text, or a 403
         # (forbidden) status is also possible (#2412, #2530)
         if r.status_code in (400, 403, 405):
-            r = requests.get(url, stream=True)
+            r = s.get(url, stream=True)
             did_get = True
         r.raise_for_status()
 
@@ -54,7 +56,7 @@ def proxy_resource(context, data_dict):
                 allowed=MAX_FILE_SIZE, actual=cl))
 
         if not did_get:
-            r = requests.get(url, stream=True)
+            r = s.get(url, stream=True)
 
         base.response.content_type = r.headers['content-type']
         base.response.charset = r.encoding
